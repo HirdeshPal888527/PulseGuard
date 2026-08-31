@@ -1,10 +1,12 @@
-# Real-Time Streaming Analytics & Anomaly Engine
+# PulseGuard
+
+**Real-Time Streaming Analytics & Anomaly Engine**
 
 A self-contained streaming data pipeline that ingests high-volume transaction events, computes per-user statistical baselines over sliding time windows, flags outliers with a dynamic Z-score, and serves the results through a REST API and a live dashboard — all running locally with a single `docker compose up`.
 
 ## Overview
 
-Most transaction fraud/anomaly demos train a model on a static, already-labeled dataset. This project instead solves the problem the way it actually shows up in production: an unbounded stream of events, no fixed dataset, and a detector that has to keep its notion of "normal" continuously up to date per user, in real time, without a human labeling every row.
+Most transaction fraud/anomaly demos train a model on a static, already-labeled dataset. PulseGuard instead solves the problem the way it actually shows up in production: an unbounded stream of events, no fixed dataset, and a detector that has to keep its notion of "normal" continuously up to date per user, in real time, without a human labeling every row.
 
 The core idea is a **per-user dynamic Z-score**. Instead of a single global threshold (e.g. "flag anything over $500"), each user's own rolling mean and standard deviation define what's normal *for them*. A $500 charge is unremarkable for a user who typically spends $800 and highly anomalous for one who typically spends $20.
 
@@ -12,10 +14,10 @@ The core idea is a **per-user dynamic Z-score**. Instead of a single global thre
 
 ```
 producer.py  →  Redpanda (Kafka API)  →  Spark Structured Streaming  →  TimescaleDB  →  FastAPI  →  Streamlit
-                                                │                              ▲
-                                     5-min sliding window,                    │
-                                     1-min watermark, per-user           hypertables +
-                                     mean/stddev, Z-score scoring        retention policy
+                                               │                              ▲
+                                    5-min sliding window,                    │
+                                    1-min watermark, per-user           hypertables +
+                                    mean/stddev, Z-score scoring        retention policy
 ```
 
 | Stage | Technology | What it does |
@@ -32,8 +34,8 @@ producer.py  →  Redpanda (Kafka API)  →  Spark Structured Streaming  →  Ti
 **Requirements:** Docker and Docker Compose, ~4GB free RAM.
 
 ```bash
-git clone <this-repo>
-cd realtime-anomaly-engine
+git clone https://github.com/HirdeshPal888527/PulseGuard.git
+cd PulseGuard
 docker compose up --build
 ```
 
@@ -55,7 +57,7 @@ docker compose down -v
 ## Project structure
 
 ```
-.
+PulseGuard/
 ├── docker-compose.yml
 ├── producer/            # synthetic event generator
 │   ├── producer.py
@@ -111,6 +113,11 @@ docker compose down -v
 - Runs as a single-node Spark job (`local[*]`); a production deployment would target a real cluster.
 - The dashboard polls the API on an interval rather than receiving pushed updates over a WebSocket.
 
-## License
+## Author
 
-MIT
+**Hirdesh Pal**
+
+GitHub: [HirdeshPal888527](https://github.com/HirdeshPal888527)
+
+Repository: [PulseGuard](https://github.com/HirdeshPal888527/PulseGuard)
+
