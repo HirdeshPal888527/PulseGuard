@@ -113,5 +113,7 @@ PulseGuard/
 - Runs as a single-node Spark job (`local[*]`); a production deployment would target a real cluster.
 - The dashboard polls the API on an interval rather than receiving pushed updates over a WebSocket.
 
+  
+
 
 
