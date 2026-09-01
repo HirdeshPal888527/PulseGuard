@@ -1,5 +1,4 @@
-FROM bitnami/spark:3.5.1
-
+FROM bitnamilegacy/spark:3.5.1
 USER root
 WORKDIR /app
 COPY spark_processor.py .
