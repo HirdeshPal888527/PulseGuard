@@ -3,7 +3,11 @@ import os
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import (
-    StructType, StructField, StringType, DoubleType, BooleanType
+    BooleanType,
+    DoubleType,
+    StringType,
+    StructField,
+    StructType,
 )
 
 KAFKA_BOOTSTRAP = os.environ.get("KAFKA_BOOTSTRAP", "localhost:9092")
@@ -142,7 +146,7 @@ def main():
     parsed = read_stream(spark)
     windowed = compute_windowed_stats(parsed)
 
-    metrics_query = (
+    (
         windowed.writeStream
         .outputMode("update")
         .foreachBatch(write_window_metrics)
@@ -151,7 +155,7 @@ def main():
         .start()
     )
 
-    anomaly_query = (
+    (
         parsed.writeStream
         .outputMode("append")
         .foreachBatch(write_anomalies(parsed, windowed, {}))

@@ -3,7 +3,7 @@ import os
 import random
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from kafka import KafkaProducer
 
@@ -17,7 +17,7 @@ LOCATIONS = ["NYC", "SF", "LON", "SGP", "BLR", "SYD", "TOR", "BER"]
 
 
 class UserProfile:
-    __slots__ = ("user_id", "mu", "sigma", "device_id", "home_location")
+    __slots__ = ("device_id", "home_location", "mu", "sigma", "user_id")
 
     def __init__(self, idx: int):
         self.user_id = f"user_{idx:04d}"
@@ -38,7 +38,7 @@ def build_event(profile: UserProfile, anomalous: bool = False) -> dict:
     amount = profile.anomalous_amount() if anomalous else profile.normal_amount()
     return {
         "user_id": profile.user_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "amount": amount,
         "location": profile.home_location if not anomalous else random.choice(LOCATIONS),
         "device_id": profile.device_id,

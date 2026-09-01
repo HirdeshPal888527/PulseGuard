@@ -1,6 +1,5 @@
 import os
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 import asyncpg
 from fastapi import FastAPI, HTTPException, Query
@@ -21,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-_pool: Optional[asyncpg.Pool] = None
+_pool: asyncpg.Pool | None = None
 
 
 class WindowMetric(BaseModel):
@@ -30,7 +29,7 @@ class WindowMetric(BaseModel):
     user_id: str
     event_count: int
     mean_amount: float
-    stddev_amount: Optional[float]
+    stddev_amount: float | None
     max_amount: float
 
 
@@ -41,8 +40,8 @@ class Anomaly(BaseModel):
     z_score: float
     window_mean: float
     window_stddev: float
-    location: Optional[str]
-    device_id: Optional[str]
+    location: str | None
+    device_id: str | None
 
 
 @app.on_event("startup")
@@ -66,17 +65,17 @@ async def health():
         async with _pool.acquire() as conn:
             await conn.fetchval("SELECT 1")
         return {"status": "ok"}
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
+    except (asyncpg.PostgresError, OSError) as exc:
+       raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.get("/metrics/recent", response_model=list[WindowMetric])
 async def recent_metrics(
     minutes: int = Query(15, ge=1, le=1440),
-    user_id: Optional[str] = None,
+    user_id: str | None = None,
     limit: int = Query(500, ge=1, le=5000),
 ):
-    since = datetime.now(timezone.utc) - timedelta(minutes=minutes)
+    since = datetime.now(UTC) - timedelta(minutes=minutes)
     sql = """
         SELECT window_start, window_end, user_id, event_count,
                mean_amount, stddev_amount, max_amount
@@ -102,7 +101,7 @@ async def live_anomalies(
     minutes: int = Query(15, ge=1, le=1440),
     limit: int = Query(200, ge=1, le=2000),
 ):
-    since = datetime.now(timezone.utc) - timedelta(minutes=minutes)
+    since = datetime.now(UTC) - timedelta(minutes=minutes)
     sql = """
         SELECT event_time, user_id, amount, z_score,
                window_mean, window_stddev, location, device_id
@@ -118,7 +117,7 @@ async def live_anomalies(
 
 @app.get("/anomalies/stats")
 async def anomaly_stats(minutes: int = Query(60, ge=1, le=1440)):
-    since = datetime.now(timezone.utc) - timedelta(minutes=minutes)
+    since = datetime.now(UTC) - timedelta(minutes=minutes)
     sql = """
         SELECT count(*) AS total_anomalies,
                count(DISTINCT user_id) AS distinct_users,

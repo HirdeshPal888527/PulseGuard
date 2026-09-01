@@ -59,7 +59,7 @@ if not metrics_df.empty:
             x=anomalies_df["event_time"],
             y=anomalies_df["amount"],
             mode="markers",
-            marker=dict(color="red", size=10, symbol="x"),
+            marker={"color": "red", "size": 10, "symbol": "x"},
             name="anomaly",
         )
     st.plotly_chart(fig, use_container_width=True)
